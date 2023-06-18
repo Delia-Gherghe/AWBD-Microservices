@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raise-deployment
+  labels:
+    app: raise
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: raise
+  template:
+    metadata:
+      labels:
+        app: raise
+    spec:
+      containers:
+      - name: raise
+        image: alexvulpoiu/raise:0.0.1-SNAPSHOT
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom: 
+            configMapKeyRef:
+              name: awbd-configmap
+              key: SPRING_PROFILES_ACTIVE
+        - name: SPRING_CONFIG_IMPORT
+          valueFrom: 
+            configMapKeyRef:
+              name: awbd-configmap
+              key: SPRING_CONFIG_IMPORT
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          valueFrom: 
+            configMapKeyRef:
+              name: awbd-configmap
+              key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: raise-service
+spec:
+  selector:
+    app: raise
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
